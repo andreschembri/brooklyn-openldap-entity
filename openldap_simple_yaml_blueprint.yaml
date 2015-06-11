@@ -6,8 +6,8 @@ services:
   name: Simple OpenLDAP blueprint
 
   launch.command: |
-    yum -y install openldap-clients openldap-servers && chkconfig slapd on && service slapd start || sudo apt-get install slapd && chkconfig slapd on && /etc/init.d/slapd start
+    yum -y install openldap-clients openldap-servers && chkconfig slapd on && service slapd start 
 
   checkRunning.command: service slapd status
   stop.command: |
-    service slapd stop && yum -y remove openldap-clients openldap-servers  || sudo apt-get remove --purge slapd 
+    service slapd stop && yum -y remove openldap-clients openldap-servers
