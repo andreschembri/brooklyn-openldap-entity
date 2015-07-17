@@ -69,6 +69,10 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         getDriver().ExecuteLdifFromFile("ldapmodify -Y EXTERNAL -H ldapi:/// -f", filePath);
         return true;
     }
+    @Override
+    public void commitCluster() {
+
+    }
 
     @Override
     public boolean loadLdifFromString(String ldif) {
