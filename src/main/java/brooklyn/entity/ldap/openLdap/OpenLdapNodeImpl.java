@@ -1,37 +1,23 @@
 package brooklyn.entity.ldap.openLdap;
 
-import brooklyn.entity.Entity;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.SoftwareProcessImpl;
-import brooklyn.event.feed.ssh.SshFeed;
-import brooklyn.event.feed.ssh.SshPollConfig;
-import brooklyn.location.Location;
-import brooklyn.location.basic.Locations;
-import brooklyn.location.basic.SshMachineLocation;
-import brooklyn.util.guava.Maybe;
-import brooklyn.util.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.List;
 
 public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNode {
+    public static final Logger log = LoggerFactory.getLogger(OpenLdapNodeImpl.class);
 
 
 
     @Override
     protected void connectSensors() {
         super.connectSensors();
-
+        connectServiceUpIsRunning();
         String checkStatusCommand = getDriver().getStatusCmd();
-        Maybe<SshMachineLocation> machine = Locations.findUniqueSshMachineLocation(getLocations());
-        SshFeed.builder().entity(this).period(Duration.FIVE_SECONDS).machine(machine.get()).poll(
-                new SshPollConfig<Boolean>(SERVICE_PROCESS_IS_RUNNING).command(checkStatusCommand).setOnSuccess(true).setOnFailure(false)
-        ).build();
-
-    }
-    public void init(){
+        log.error("Getting Status by invoking " + checkStatusCommand);
 
     }
 
@@ -45,14 +31,22 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         return (OpenLdapDriver) super.getDriver();
     }
 
+
     @Override
-    public int getPort() {
-        return this.OPENLDAP_PORT.getAsSensorValue(this);
+    public void disconnectSensors(){
+       super.disconnectSensors();
+        disconnectServiceUpIsRunning();
+
     }
 
     @Override
     public String getHost(){
         return this.getAttribute(Attributes.HOSTNAME);
+    }
+
+    @Override
+    public int getPort() {
+        return this.getAttribute(OPENLDAP_PORT);
     }
 
 
@@ -64,14 +58,22 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         loadLdifFromString(LdifHelper.generateLdapClientBind(providers));
     }
 
+//    @Override
+//    public void commitCluster() {
+//        log.error("well this worked");
+//    }
+
+    @Override
+    public Boolean commitCluster(List<String> currentNodes) {
+        log.error("YEY YEY");
+        log.error("Current node is " + this.getHost());
+        return true;
+    }
+
     @Override
     public boolean loadLdifFromFile(String filePath) {
         getDriver().ExecuteLdifFromFile("ldapmodify -Y EXTERNAL -H ldapi:/// -f", filePath);
         return true;
-    }
-    @Override
-    public void commitCluster() {
-
     }
 
     @Override

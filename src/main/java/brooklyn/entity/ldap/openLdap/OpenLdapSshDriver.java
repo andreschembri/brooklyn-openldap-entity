@@ -1,15 +1,10 @@
 package brooklyn.entity.ldap.openLdap;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
-import brooklyn.entity.basic.Attributes;
-import brooklyn.entity.basic.EntityLocal;
-import brooklyn.entity.basic.SoftwareProcessImpl;
+import brooklyn.entity.basic.lifecycle.ScriptHelper;
 import brooklyn.entity.software.SshEffectorTasks;
-import brooklyn.location.Location;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.collections.MutableMap;
-import brooklyn.util.net.Urls;
-import brooklyn.util.ssh.BashCommands;
 import brooklyn.util.task.DynamicTasks;
 import brooklyn.util.task.system.ProcessTaskWrapper;
 import com.google.common.collect.ImmutableList;
@@ -21,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static brooklyn.util.ssh.BashCommands.installPackage;
+import static brooklyn.util.ssh.BashCommands.sudo;
 
 public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implements OpenLdapDriver {
 
@@ -28,14 +24,16 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     public OpenLdapSshDriver(OpenLdapNodeImpl entity, SshMachineLocation machine) {
         super(entity, machine);
-//        entity.setAttribute(Attributes.LOG_FILE_LOCATION, getLogFile());
     }
 
     @Override
     public boolean isRunning() {
-        return newScript(MutableMap.of("usePidFile", false), CHECK_RUNNING)
-        .body.append(getStatusCmd())
-                .execute() == 0;
+
+        ScriptHelper checkRunningScript = newScript(CHECK_RUNNING)
+                .body.append(sudo(getStatusCmd()));
+        int returnScriptValue = checkRunningScript.execute();
+        log.error("CheckRunningScript is returning " +  returnScriptValue);
+        return (returnScriptValue == 0);
     }
 
     @Override
@@ -53,12 +51,11 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     @Override
     public void customize() {
-        //TODO: any other tasks needed to post configure ldap
     }
 
     @Override
     public void launch() {
-         newScript(MutableMap.of(USE_PID_FILE, false), LAUNCHING).body.append("service slapd start").execute();
+         newScript(MutableMap.of(USE_PID_FILE, false), LAUNCHING).body.append(sudo("service slapd start")).failOnNonZeroResultCode().execute();
         //TODO put the command to start the service in different linux distributions
     }
 
@@ -67,6 +64,7 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         //TODO: put commands to check status of process here
         return "service slapd status";
     }
+
 
     @Override
     public ProcessTaskWrapper<Integer> executeScriptAsync(String commands) {
@@ -86,19 +84,16 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         this.getMachine().execCommands(null, ImmutableList.of(command + " " + filePath));
     }
 
-    @Override
-    public void preInstall() {
-        //TODO: download files and check dependencies etc
-    }
+
 
     @Override
     public OpenLdapNodeImpl getEntity() {
         return (OpenLdapNodeImpl) super.getEntity();
     }
 
-    public int getPort() {
-        return getEntity().getPort();
-    }
+//    public int getPort() {
+//        return getEntity().getPort();
+//    }
 
 
 }

@@ -3,6 +3,7 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.annotation.Effector;
+import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.MethodEffector;
@@ -12,10 +13,8 @@ import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
 import brooklyn.event.basic.Sensors;
-import brooklyn.location.MachineLocation;
 import brooklyn.location.basic.PortRanges;
 import brooklyn.util.flags.SetFromFlag;
-import com.google.common.net.HostAndPort;
 
 import java.util.List;
 
@@ -24,13 +23,13 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     @SetFromFlag("version")
     public static final ConfigKey<String> SUGGESTED_VERSION = ConfigKeys.newConfigKeyWithDefault(SoftwareProcess.SUGGESTED_VERSION, "");
 
-    //FIXME: put download url here
+    //FIXME: put download urls properly here
     @SetFromFlag("downloadUrl")
     public static final BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey.StringAttributeSensorAndConfigKey(Attributes.DOWNLOAD_URL, "");
 
-    //FIXME: put port range here
+//    //FIXME: put port properly here
     @SetFromFlag
-    public static final PortAttributeSensorAndConfigKey OPENLDAP_PORT = new PortAttributeSensorAndConfigKey("openldap.port", "OpenLDAP port", PortRanges.fromString(""));
+    public static final PortAttributeSensorAndConfigKey OPENLDAP_PORT = new PortAttributeSensorAndConfigKey("openldap.port", "OpenLDAP port", PortRanges.fromString("389"));
 
     public  String getHost();
 
@@ -48,7 +47,7 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     AttributeSensor<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = Sensors.newBooleanSensor(
             "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member");
 
-    MethodEffector<Void> COMMIT_OPENLDAP_CLUSTER = new MethodEffector<Void>(OpenLdapNode.class, "commitCluster");
+    MethodEffector<Boolean> COMMIT_OPENLDAP_CLUSTER = new MethodEffector<Boolean>(OpenLdapNode.class, "commitCluster");
 
     @Effector
     boolean loadLdifFromFile(String filePath);
@@ -59,8 +58,8 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     @Effector
      void addMasterProviders(String provider, String bindMethod, String binddn, String credentials, String searchBase, String scope, String schemaChecking, String type, String retry, String interval, List<String> providers);
 
-    @Effector(description = "Commit changes made to the Riak cluster")
-    public void commitCluster();
 
+    @Effector
+    public Boolean commitCluster(@EffectorParam(name = "currentNodes")List<String> currentNodes);
 
     }

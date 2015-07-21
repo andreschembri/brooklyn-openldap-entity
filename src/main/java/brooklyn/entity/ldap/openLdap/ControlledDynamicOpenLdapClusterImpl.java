@@ -2,23 +2,24 @@ package brooklyn.entity.ldap.openLdap;
 
 import brooklyn.enricher.Enrichers;
 import brooklyn.entity.Entity;
-import brooklyn.entity.basic.*;
+import brooklyn.entity.basic.Attributes;
+import brooklyn.entity.basic.Entities;
+import brooklyn.entity.basic.Lifecycle;
+import brooklyn.entity.basic.ServiceStateLogic;
 import brooklyn.entity.group.AbstractMembershipTrackingPolicy;
-
 import brooklyn.entity.group.DynamicClusterImpl;
-
 import brooklyn.location.Location;
 import brooklyn.policy.EnricherSpec;
 import brooklyn.policy.PolicySpec;
-
+import brooklyn.util.time.Time;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,38 +42,24 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
         super.start(locations);
         connectSensors();
         log.error("OPENLDAP start ::Checking if location is empty");
+        Time.sleep(6000);
         if (locations.isEmpty()) locations = getLocations();
-//        log.error("OPENLDAP start:: adding locations");
-//        addLocations(locations);
-//
-//
-//        log.error("OPENLDAP start:: creating list of nodes to be started");
-//        List<Entity> childrenToStart = MutableList.<Entity>of(getCluster());
-//
-//        try {
-//            log.error("OPENLDAP start:: trying to start each node, current number of nodes: " + childrenToStart.size() + " number of locations: " + locations.size());
-////            Entities.invokeEffectorList(this, childrenToStart, Startable.START, ImmutableMap.of("locations", locations)).get();
-//           log.error("Current Entity type is " + childrenToStart.toString() );
-//            childrenToStart.get(0).invoke(Startable.START, null);
-//
-//            ServiceStateLogic.setExpectedState(this, Lifecycle.RUNNING);
-//        } catch (Exception e) {
-//            ServiceStateLogic.setExpectedState(this, Lifecycle.ON_FIRE);
-//            throw Exceptions.propagate(e);
-//        }finally {
-//            connectSensors();
-//        }
-
+        log.error("These locations are present " + locations.toArray().toString());
+//        Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
+//                Predicates.instanceOf(OpenLdapNode.class),
+//                EntityPredicates.attributeEqualTo(OpenLdapNode.OPENLDAP_NODE_HAS_JOINED_CLUSTER, true),
+//                EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)));
         Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
-                Predicates.instanceOf(OpenLdapNode.class),
-                EntityPredicates.attributeEqualTo(OpenLdapNode.OPENLDAP_NODE_HAS_JOINED_CLUSTER, true),
-                EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)));
+                Predicates.instanceOf(OpenLdapNode.class)));
+                log.error("Checking if anyNode is present");
         if (anyNode.isPresent()) {
             log.info("Planning and Committing cluster changes on node: {}, cluster: {}", anyNode.get().getId(), getId());
-            Entities.invokeEffector(this, anyNode.get(), OpenLdapNode.COMMIT_OPENLDAP_CLUSTER).blockUntilEnded();
+            List<String> arrayListTest = new ArrayList<String>();
+            Entities.invokeEffector(this, anyNode.get(), OpenLdapNode.COMMIT_OPENLDAP_CLUSTER, ImmutableMap.of("currentNodes", arrayListTest)).blockUntilEnded();
+
             setAttribute(IS_CLUSTER_INIT, true);
         } else {
-            log.warn("No Riak Nodes are found on the cluster: {}. Initialization Failed", getId());
+            log.warn("No OpenLdap Nodes are found on the cluster: {}. Initialization Failed", getId());
             ServiceStateLogic.setExpectedState(this, Lifecycle.ON_FIRE);
         }
     }
@@ -98,9 +85,24 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
     }
 
 
+
+
     @Override
     public void onServerPoolMemberChanged(Entity entity) {
-log.error("SERVER CHANGED WOOOHOOO");
+        log.error("SERVER CHANGED current entity is " + entity.getLocations().iterator().next());
+        log.error("Current Members are :: ");
+        for(String member : getProviderUrlFromMembers()){
+            log.error(member);
+        }
+        List<String> currentMembers = getProviderUrlFromMembers();
+
+        Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
+        for(OpenLdapNode target: targets){
+            target.commitCluster(currentMembers);
+
+        }
+
+
     }
 
     public static class MemberTrackingPolicy extends AbstractMembershipTrackingPolicy {

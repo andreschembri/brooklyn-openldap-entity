@@ -3,14 +3,14 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.catalog.Catalog;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
-import brooklyn.entity.Group;
-import brooklyn.entity.basic.*;
+import brooklyn.entity.basic.Attributes;
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.ConfigurableEntityFactory;
+import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.group.Cluster;
 import brooklyn.entity.group.DynamicCluster;
 import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
-import brooklyn.entity.trait.Resizable;
-import brooklyn.entity.trait.Startable;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
@@ -56,6 +56,5 @@ public interface ControlledDynamicOpenLdapCluster extends  DynamicCluster{
 
     void onServerPoolMemberChanged(Entity entity);
 
-//    AttributeSensor<String> NODE_LIST = Sensors.newStringSensor("openLdap.cluster.nodeList", "List of nodes (including ports), comma separated");
 
 }
