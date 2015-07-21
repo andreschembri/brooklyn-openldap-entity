@@ -1,0 +1,18 @@
+name: Simple OpenLDAP blueprint
+location: localhost
+services:
+- type: brooklyn.entity.basic.VanillaSoftwareProcess
+  id: OpenLDAP
+  name: Simple OpenLDAP blueprint
+
+  launch.command: |
+    yum -y install openldap-clients openldap-servers && chkconfig slapd on && service slapd start || 
+    apt-get  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install slapd && /etc/init.d/slapd start && update-rc.d slapd defaults || 
+    zypper install -y openldap2 && systemctl start slapd && systemctl enable slapd
+
+
+  checkRunning.command: service slapd status || /etc/init.d/slapd status || systemctl status slapd
+  stop.command: |
+    service slapd stop && yum -y remove openldap-clients openldap-servers  || 
+    /etc/init.d/slapd stop && apt-get -y remove --purge slapd || 
+    systemctl stop slapd && zypper remove -y openldap2
