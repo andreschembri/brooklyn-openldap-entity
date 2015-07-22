@@ -33,7 +33,6 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         ScriptHelper checkRunningScript = newScript(CHECK_RUNNING)
                 .body.append(sudo(getStatusCmd()));
         int returnScriptValue = checkRunningScript.execute();
-        log.error("CheckRunningScript is returning " +  returnScriptValue);
         return (returnScriptValue == 0);
     }
 
