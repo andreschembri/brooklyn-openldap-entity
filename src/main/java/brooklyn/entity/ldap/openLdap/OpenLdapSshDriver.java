@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import static brooklyn.util.ssh.BashCommands.installPackage;
 import static brooklyn.util.ssh.BashCommands.sudo;
@@ -61,7 +62,7 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
 
     public String getStatusCmd() {
-        //TODO: put commands to check status of process here
+        //TODO: need to check for different OSs
         return "service slapd status";
     }
 
@@ -73,13 +74,24 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     @Override
     public void ExecuteLDIF(String command, String ldif) {
-        //todo: change the command to an enum or an if statement
-        this.getMachine().execCommands(null, ImmutableList.of(command + " " + ldif));
+        //todo: change the command to an enum (ldapadd, ldapmodify etc) or an if statement
+
+        //Create LDIF file to be executed
+        Random rand = new Random();
+        String fileName = rand.nextInt(500) + ".ldif";
+        this.getMachine().execCommands(null, ImmutableList.of("cat <<EOF > /tmp/ldap" + fileName + "\n"
+                                                                                        + ldif + "\n" + "EOF"));
+
+        //execute ldap
+        this.getMachine().execCommands(null, ImmutableList.of(command + " -f" + "/tmp/ldap/" + fileName));
+
+        //remove file
+        this.getMachine().execCommands(null, ImmutableList.of("rm -f /tmp/ldap/" + fileName ));
     }
 
     @Override
     public void ExecuteLdifFromFile(String command, String filePath) {
-        //todo: change the command to an enum or an if statement
+        //todo: change the command to an enum (ldapadd, ldapmodify etc) or an if statement
         //todo: use the -f flag.
         this.getMachine().execCommands(null, ImmutableList.of(command + " " + filePath));
     }
@@ -91,9 +103,6 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         return (OpenLdapNodeImpl) super.getEntity();
     }
 
-//    public int getPort() {
-//        return getEntity().getPort();
-//    }
 
 
 }
