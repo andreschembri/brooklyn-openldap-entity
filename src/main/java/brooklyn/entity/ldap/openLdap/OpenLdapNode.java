@@ -27,7 +27,7 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     @SetFromFlag("downloadUrl")
     public static final BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey.StringAttributeSensorAndConfigKey(Attributes.DOWNLOAD_URL, "");
 
-//    //FIXME: put port properly here
+    //FIXME: put port properly here
     @SetFromFlag
     public static final PortAttributeSensorAndConfigKey OPENLDAP_PORT = new PortAttributeSensorAndConfigKey("openldap.port", "OpenLDAP port", PortRanges.fromString("389"));
 
@@ -54,9 +54,6 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
 
     @Effector
     boolean loadLdifFromString(String ldif);
-
-    @Effector
-     void addMasterProviders(String provider, String bindMethod, String binddn, String credentials, String searchBase, String scope, String schemaChecking, String type, String retry, String interval, List<String> providers);
 
 
     @Effector

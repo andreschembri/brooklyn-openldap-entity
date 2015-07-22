@@ -17,8 +17,6 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         super.connectSensors();
         connectServiceUpIsRunning();
         String checkStatusCommand = getDriver().getStatusCmd();
-        log.error("Getting Status by invoking " + checkStatusCommand);
-
     }
 
     @Override
@@ -49,24 +47,18 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         return this.getAttribute(OPENLDAP_PORT);
     }
 
-
-    @Override
-    public void addMasterProviders(String provider, String bindMethod, String binddn, String credentials, String searchBase, String scope, String schemaChecking, String type, String retry, String interval, List<String> providers) {
+    private void addMasterProviders(ReplicationProperties replicationProperties) {
         loadLdifFromString(LdifHelper.generateAddOlcRootDNLdif());
         loadLdifFromString(LdifHelper.generateLoadSyncProvLdif());
-        loadLdifFromString(LdifHelper.generateReplicationModification(providers));
-        loadLdifFromString(LdifHelper.generateLdapClientBind(providers));
+        loadLdifFromString(LdifHelper.generateReplicationModification(replicationProperties.getProviders()));
+        loadLdifFromString(LdifHelper.generateLdapClientBind(replicationProperties.getProviders()));
     }
-
-//    @Override
-//    public void commitCluster() {
-//        log.error("well this worked");
-//    }
 
     @Override
     public Boolean commitCluster(List<String> currentNodes) {
-        log.error("YEY YEY");
-        log.error("Current node is " + this.getHost());
+        log.info("Committing node with host: " + this.getHost());
+        ReplicationProperties replicationProperties = new ReplicationProperties(currentNodes,"simple", "cn=Manager,dc=server,dc=world", "password", "dc=server,dc=world", "sub", "on", "refreshAndPersist", "30 5 300 3", "00:00:05:00" );
+        addMasterProviders(replicationProperties);
         return true;
     }
 
