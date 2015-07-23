@@ -8,4 +8,5 @@ public interface OpenLdapDriver extends SoftwareProcessDriver {
     public ProcessTaskWrapper<Integer> executeScriptAsync(String commands);
     public void ExecuteLDIF(String Command, String ldif);
     public void ExecuteLdifFromFile(String Command, String filePath);
+    public void ExecuteCommand(String command);
 }

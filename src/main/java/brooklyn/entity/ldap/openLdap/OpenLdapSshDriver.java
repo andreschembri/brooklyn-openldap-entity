@@ -78,14 +78,14 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         //Create LDIF file to be executed
         Random rand = new Random();
         String fileName = rand.nextInt(500) + ".ldif";
-        this.getMachine().execCommands(null, ImmutableList.of("cat <<EOF > /tmp/ldap" + fileName + "\n"
+        this.getMachine().execCommands(null, ImmutableList.of("cat  > /tmp/ldap/"  + fileName + "<<EOF\n"
                                                                                         + ldif + "\n" + "EOF"));
 
         //execute ldap
         this.getMachine().execCommands(null, ImmutableList.of(command + " -f" + "/tmp/ldap/" + fileName));
 
         //remove file
-        this.getMachine().execCommands(null, ImmutableList.of("rm -f /tmp/ldap/" + fileName ));
+//        this.getMachine().execCommands(null, ImmutableList.of("rm -f /tmp/ldap/" + fileName ));
     }
 
     @Override
@@ -93,6 +93,10 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         //todo: change the command to an enum (ldapadd, ldapmodify etc) or an if statement
         //todo: use the -f flag.
         this.getMachine().execCommands(null, ImmutableList.of(command + " " + filePath));
+    }
+
+    public void ExecuteCommand(String command){
+        this.getMachine().execCommands(null, ImmutableList.of(command));
     }
 
 

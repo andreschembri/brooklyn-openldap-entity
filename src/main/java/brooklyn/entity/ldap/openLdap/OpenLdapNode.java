@@ -17,6 +17,7 @@ import brooklyn.location.basic.PortRanges;
 import brooklyn.util.flags.SetFromFlag;
 
 import java.util.List;
+import java.util.Map;
 
 @ImplementedBy(OpenLdapNodeImpl.class)
 public interface OpenLdapNode extends SoftwareProcess, Entity {
@@ -41,8 +42,7 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     public static final BasicAttributeSensorAndConfigKey<Boolean> OLCOVERLAYCONFIG = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class, "openldap.replication.olcoverlayconfig.enabled");
     @SetFromFlag
     public static final BasicAttributeSensorAndConfigKey<Boolean> OLCSYNCPROVCONFIG = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class , "openldap.replication.olcsyncprovconfig.enabled");
-    @SetFromFlag
-    public static final BasicAttributeSensorAndConfigKey<Integer> OLCSERVERID = new BasicAttributeSensorAndConfigKey<Integer>(Integer.class, "openldap.replication.serverid");
+
 
     AttributeSensor<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = Sensors.newBooleanSensor(
             "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member");
@@ -53,10 +53,17 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     boolean loadLdifFromFile(String filePath);
 
     @Effector
-    boolean loadLdifFromString(String ldif);
+    boolean ldapModifyFromString(String ldif);
 
 
     @Effector
-    public Boolean commitCluster(@EffectorParam(name = "currentNodes")List<String> currentNodes);
+    public Boolean commitCluster(@EffectorParam(name = "currentNodes")Map<String, Integer> currentNodes);
+
+    public Integer getOlcServerId();
+    public void setOlcServerId(Integer olcServerId);
+
 
     }
+
+
+

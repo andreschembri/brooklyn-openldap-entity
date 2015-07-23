@@ -1,9 +1,10 @@
 package brooklyn.entity.ldap.openLdap;
 
 import java.util.List;
+import java.util.Map;
 
 public class ReplicationProperties {
-    private final List<String> providers;
+    private final Map<String, Integer> providers;
     private final String bindMethod;
     private final String binddn;
     private final String credentials;
@@ -14,7 +15,8 @@ public class ReplicationProperties {
     private final String retry;
     private final String interval;
 
-    public ReplicationProperties(List<String> providers, String bindMethod, String binddn, String credentials, String searchBase, String scope, String schemaChecking, String type, String retry, String interval) {
+    private final Integer currentServerId;
+    public ReplicationProperties(Map<String, Integer> providers, String bindMethod, String binddn, String credentials, String searchBase, String scope, String schemaChecking, String type, String retry, String interval, Integer currentServerId) {
         this.providers = providers;
         this.bindMethod = bindMethod;
         this.binddn = binddn;
@@ -25,9 +27,14 @@ public class ReplicationProperties {
         this.type = type;
         this.retry = retry;
         this.interval = interval;
+        this.currentServerId = currentServerId;
     }
 
-    public List<String> getProviders() {
+    public Integer getCurrentServerId() {
+        return currentServerId;
+    }
+
+    public Map<String, Integer> getProviders() {
         return providers;
     }
 

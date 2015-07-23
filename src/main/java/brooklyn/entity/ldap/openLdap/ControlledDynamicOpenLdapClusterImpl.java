@@ -21,9 +21,8 @@ import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl implements ControlledDynamicOpenLdapCluster {
     public static final Logger log = LoggerFactory.getLogger(ControlledDynamicOpenLdapClusterImpl.class);
@@ -85,24 +84,24 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
     }
 
 
-
+    private AtomicInteger serverId = new AtomicInteger(0);
 
     @Override
     public void onServerPoolMemberChanged(Entity entity) {
         log.error("SERVER CHANGED current entity is " + entity.getLocations().iterator().next());
         log.error("Current Members are :: ");
-        for(String member : getProviderUrlFromMembers()){
-            log.error(member);
-        }
-        List<String> currentMembers = getProviderUrlFromMembers();
 
+        OpenLdapNode openLdapNode = (OpenLdapNode) entity;
+
+
+        Map<String, Integer> currentMembers = new HashMap<String, Integer>();
+        for(Map.Entry<String, Integer> member : getProviderUrlAndIdFromMembers().entrySet()){
+            currentMembers.put(member.getKey(), member.getValue());
+        }
         Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
         for(OpenLdapNode target: targets){
             target.commitCluster(currentMembers);
-
         }
-
-
     }
 
     public static class MemberTrackingPolicy extends AbstractMembershipTrackingPolicy {
@@ -112,14 +111,24 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
         }
     }
 
+    private void setOlcServerIdIfNull(OpenLdapNode openLdapNode){
+        if(openLdapNode.getOlcServerId() == null){
+            openLdapNode.setOlcServerId(serverId.incrementAndGet());
+            log.error("Setting olcServerId to : " + serverId);
+        }
+    }
 
-    private List<String> getProviderUrlFromMembers() {
+
+    private Map<String, Integer> getProviderUrlAndIdFromMembers() {
         log.error("OPENLDAP get provider from url members");
-        ArrayList<String> providers = new ArrayList<String>();
+        Map<String, Integer> providers = new HashMap<String, Integer>();
         Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
         for (OpenLdapNode node : targets) {
             String providerURL = "ldap://" + node.getHost() + ":" + node.getPort();
-            providers.add(providerURL);
+            setOlcServerIdIfNull(node);
+            Integer id = node.getOlcServerId();
+            log.error("Node placed in map has the values of " + providerURL + " " + id);
+            providers.put(providerURL, id);
         }
         return providers;
     }

@@ -1,6 +1,7 @@
 package brooklyn.entity.ldap.openLdap;
 
 import java.util.List;
+import java.util.Map;
 
 public class LdifHelper {
 
@@ -27,21 +28,21 @@ public class LdifHelper {
     }
 
 
-    public static String generateReplicationModification(List<String> providers){
-        Integer currentServerID = 0;
+    public static String generateReplicationModification(ReplicationProperties replicationProperties){
+
         String result = "dn: cn=config\n" +
                 "changetype: modify\n" +
                 "replace: olcServerID\n" +
                 "\n" +
                 "# specify uniq ID number on each server\n" +
                 "\n" +
-                "olcServerID: "+ currentServerID.toString() + "\n" +
+                "olcServerID: "+ replicationProperties.getCurrentServerId().toString() + "\n" +
                 "\n" +
                 "dn: olcDatabase={2}hdb,cn=config\n" +
                 "changetype: modify\n" +
                 "add: olcSyncRepl\n" ;
 
-                for(String provider : providers){
+                for(Map.Entry<String, Integer> provider : replicationProperties.getProviders().entrySet()){
                     result += generateProviderPart(provider);
                 }
 
@@ -58,13 +59,13 @@ public class LdifHelper {
         return result;
     }
 
-    private static String generateProviderPart(String provider){
-        return "olcSyncRepl: rid=001\n" +
+    private static String generateProviderPart(Map.Entry<String, Integer> provider){
+        return "olcSyncRepl: rid="+ provider.getValue()+"\n" +
                 "\n" +
                 " \n" +
                 "# specify another LDAP server's URI\n" +
                 "\n" +
-                "  provider=ldap://"+ provider +":389/\n" +
+                "  provider=ldap://"+ provider.getKey() +"\n" +
                 "  bindmethod=simple\n" +
                 "  \n" +
                 "\n" +
@@ -98,12 +99,12 @@ public class LdifHelper {
                 "-\n";
     }
 
-    public static String generateLdapClientBind(List<String> providers){
+    public static String generateLdapClientBind(Map<String, Integer> providers){
         String command = "authconfig --ldapserver=";
-        for(String provider : providers){
-            command += provider + ",";
+        for(Map.Entry<String, Integer> provider : providers.entrySet()){
+            command += provider.getKey() ;
         }
-        command += "--update";
+        command += " --update";
         return command;
     }
 
