@@ -53,7 +53,10 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
                 log.error("Checking if anyNode is present");
         if (anyNode.isPresent()) {
             log.info("Planning and Committing cluster changes on node: {}, cluster: {}", anyNode.get().getId(), getId());
-            List<String> arrayListTest = new ArrayList<String>();
+           //Fixme: fix this name
+            Map<String,Integer> arrayListTest = getProviderUrlAndIdFromMembers();
+
+            //TODO: Move logic for OLCServerId Here
             Entities.invokeEffector(this, anyNode.get(), OpenLdapNode.COMMIT_OPENLDAP_CLUSTER, ImmutableMap.of("currentNodes", arrayListTest)).blockUntilEnded();
 
             setAttribute(IS_CLUSTER_INIT, true);
