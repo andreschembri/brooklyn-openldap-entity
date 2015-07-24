@@ -49,24 +49,22 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     }
 
     private void addMasterProviders(ReplicationProperties replicationProperties) {
-        ldapModifyFromString(LdifHelper.generateAddOlcRootDNLdif());
-        ldapAddFromString(LdifHelper.generateLoadSyncProvLdif());
-        ldapAddFromString(LdifHelper.generateOlcOverlayForSyncprovLdif());
-        ldapModifyFromString(LdifHelper.generateReplicationModification(replicationProperties));
-        this.getDriver().ExecuteCommand( LdifHelper.generateLdapClientBind(replicationProperties.getProviders()));
+        ldapModifyFromString(LdifHelper.generateLoadSyncProv());
+        ldapModifyFromString(LdifHelper.generateSetOlcServerId(this.getOlcServerId()));
+        ldapModifyFromString(LdifHelper.generateSetPassword(this.generateSlappassword(replicationProperties.getCredentials())));
+        ldapModifyFromString(LdifHelper.generateAddSyncProv());
+        ldapModifyFromString(LdifHelper.generateAddSyncRepl(replicationProperties));
+    }
+
+    private String generateSlappassword(String password){
+       return this.getDriver().ExecuteCommand(LdifHelper.generateSlappasswd(password));
     }
 
     @Override
     public Boolean commitCluster(Map<String, Integer> currentNodes) {
         log.info("Committing node with host: " + this.getHost());
         Map<String, Integer> applicableNodes = new HashMap<String, Integer>();
-        //Remove current node from list
-        //FIXME: use cleaner code
-        for(Map.Entry<String, Integer> node : currentNodes.entrySet()){
-            if (!node.getKey().contains(this.getHost())){
-                applicableNodes.put(node.getKey(), node.getValue());
-            }
-        }
+        //FIXME : Ideally this should replicate CONFIG by default, need to default it to something and make it configurable
         ReplicationProperties replicationProperties = new ReplicationProperties(applicableNodes,"simple", "cn=Manager,dc=server,dc=world", "password", "dc=server,dc=world", "sub", "on", "refreshAndPersist", "30 5 300 3", "00:00:05:00",  this.getOlcServerId());
         addMasterProviders(replicationProperties);
         return true;

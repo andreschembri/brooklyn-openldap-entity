@@ -95,8 +95,10 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         this.getMachine().execCommands(null, ImmutableList.of(command + " " + filePath));
     }
 
-    public void ExecuteCommand(String command){
+    public String ExecuteCommand(String command){
+        //FIXME SHOULD RETURN OUTPUT of command
         this.getMachine().execCommands(null, ImmutableList.of(command));
+        return "";
     }
 
 
