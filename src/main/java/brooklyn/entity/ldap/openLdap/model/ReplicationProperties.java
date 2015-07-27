@@ -3,7 +3,6 @@ package brooklyn.entity.ldap.openLdap.model;
 import brooklyn.entity.ldap.openLdap.OpenLdapNode;
 
 
-
 public class ReplicationProperties {
     private final Iterable<OpenLdapNode> providers;
     private final String bindMethod;
@@ -17,6 +16,7 @@ public class ReplicationProperties {
     private final String interval;
 
     private final Integer currentServerId;
+
     public ReplicationProperties(Iterable<OpenLdapNode> providers, String bindMethod, String binddn, String credentials, String searchBase, String scope, Boolean schemaChecking, String type, String retry, String interval, Integer currentServerId) {
         this.providers = providers;
         this.bindMethod = bindMethod;
@@ -59,8 +59,12 @@ public class ReplicationProperties {
         return scope;
     }
 
-    public Boolean getSchemaChecking() {
-        return schemaChecking;
+    public String getSchemaChecking() {
+        if (schemaChecking == true) {
+            return "on";
+        } else {
+            return "off";
+        }
     }
 
     public String getType() {
