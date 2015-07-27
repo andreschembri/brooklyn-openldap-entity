@@ -66,7 +66,7 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
             ldapModifyFromString(ConfigurationGenerator.generateSetOlcServerId(this.getAttribute(OLCSERVERID)));
             ldapModifyFromString(ConfigurationGenerator.generateSetPassword(this.generateSlappassword(replicationProperties.getCredentials())));
             ldapModifyFromString(ConfigurationGenerator.generateAddSyncProvider());
-            ldapModifyFromString(ConfigurationGenerator.generateModifySyncReplication(replicationProperties));
+            ldapModifyFromString(ConfigurationGenerator.generateAddSyncReplication(replicationProperties));
         }
     }
 

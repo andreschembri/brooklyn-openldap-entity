@@ -46,7 +46,7 @@ public static String generateAddSyncProvToModuleList(){
                 "olcOverlay: syncprov";
     }
 
-    public static String generateModifySyncReplication(ReplicationProperties replicationProperties) {
+    public static String generateAddSyncReplication(ReplicationProperties replicationProperties) {
         StringBuilder ldif = new StringBuilder();
         ldif.append("dn: olcDatabase={0}config,cn=config\n" +
                 "changetype: modify\n" +
@@ -60,6 +60,24 @@ public static String generateAddSyncProvToModuleList(){
         }
         ldif.append("-\n" +
                 "add: olcMirrorMode\n" +
+                "olcMirrorMode: TRUE");
+        return ldif.toString();
+    }
+
+    public static String generateModifySyncReplication(ReplicationProperties replicationProperties) {
+        StringBuilder ldif = new StringBuilder();
+        ldif.append("dn: olcDatabase={0}config,cn=config\n" +
+                "changetype: modify\n" +
+                "replace: olcSyncRepl\n");
+        Iterable<OpenLdapNode> providers = replicationProperties.getProviders();
+        for (OpenLdapNode provider : providers) {
+            //TODO: add timeout property
+            ldif.append(String.format("olcSyncRepl: rid=%d provider=%s binddn=\"%s\" bindmethod=%s credentials=%s searchbase=\"%s\" type=%s retry=\"%s\" %n",
+                    provider.getAttribute(provider.OLCSERVERID), provider.getAttribute(provider.ADDRESS), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
+                    replicationProperties.getCredentials(), replicationProperties.getSearchBase(), replicationProperties.getType(), replicationProperties.getRetry()));
+        }
+        ldif.append("-\n" +
+                "replace: olcMirrorMode\n" +
                 "olcMirrorMode: TRUE");
         return ldif.toString();
     }

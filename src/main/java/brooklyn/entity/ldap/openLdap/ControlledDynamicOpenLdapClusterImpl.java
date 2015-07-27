@@ -3,6 +3,7 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.enricher.Enrichers;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.Attributes;
+import brooklyn.entity.basic.EntityPredicates;
 import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.basic.ServiceStateLogic;
 import brooklyn.entity.group.AbstractMembershipTrackingPolicy;
@@ -46,7 +47,8 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
 //                EntityPredicates.attributeEqualTo(OpenLdapNode.OPENLDAP_NODE_HAS_JOINED_CLUSTER, true),
 //                EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)));
         Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
-                Predicates.instanceOf(OpenLdapNode.class)));
+                Predicates.instanceOf(OpenLdapNode.class), EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)
+                ));
                 log.trace("Checking if anyNode is present");
         if (anyNode.isPresent()) {
             clusterizeEntities();
@@ -93,7 +95,6 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
     }
 
     public static class MemberTrackingPolicy extends AbstractMembershipTrackingPolicy {
-
         @Override
         protected  void onEntityAdded(Entity member){
             if(super.entity instanceof  ControlledDynamicOpenLdapCluster){
