@@ -42,10 +42,6 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
         log.trace("OPENLDAP start ::Checking if location is empty");
         Time.sleep(6000);
         if (locations.isEmpty()) locations = getLocations();
-//        Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
-//                Predicates.instanceOf(OpenLdapNode.class),
-//                EntityPredicates.attributeEqualTo(OpenLdapNode.OPENLDAP_NODE_HAS_JOINED_CLUSTER, true),
-//                EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)));
         Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
                 Predicates.instanceOf(OpenLdapNode.class), EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)
                 ));
