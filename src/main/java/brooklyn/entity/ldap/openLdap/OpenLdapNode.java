@@ -33,7 +33,6 @@ public interface OpenLdapNode extends SoftwareProcess, Entity, EntityLocal {
 
     BasicAttributeSensorAndConfigKey<Integer> OLCSERVERID = new BasicAttributeSensorAndConfigKey<Integer>(Integer.class , "openldap.olcserverid");
 
-
     BasicAttributeSensorAndConfigKey<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class,
             "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member");
 

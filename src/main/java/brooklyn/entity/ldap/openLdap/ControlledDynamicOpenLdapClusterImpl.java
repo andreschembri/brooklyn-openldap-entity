@@ -1,5 +1,6 @@
 package brooklyn.entity.ldap.openLdap;
 
+import brooklyn.config.ConfigKey;
 import brooklyn.enricher.Enrichers;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.Attributes;
@@ -81,8 +82,8 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
     private void clusterizeEntities(){
         Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
         setOlcServerIdIfNull(targets);
-        for(OpenLdapNode target: targets){
-            ReplicationProperties replicationProperties = new ReplicationProperties(targets ,"simple", "cn=admin,cn=config", "password", "cn=config", "sub", "on", "refreshAndPersist", "5 5 300 5", "00:00:05:00",  target.getAttribute(target.OLCSERVERID));
+        for(OpenLdapNode target: targets) {
+            ReplicationProperties replicationProperties = new ReplicationProperties(targets ,getConfig(BINDMETHOD), getConfig(BINDDN), getConfig(CREDENTIALS), getConfig(SEARCHBASE), getConfig(SCOPE), getConfig(SCHEMACHECKING), getConfig(TYPE), getConfig(RETRYSTRING), getConfig(INTERVALSTRING),  target.getAttribute(target.OLCSERVERID));
             target.commitCluster(replicationProperties);
         }
     }

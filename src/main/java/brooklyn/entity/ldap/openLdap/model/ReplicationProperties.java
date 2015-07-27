@@ -11,13 +11,13 @@ public class ReplicationProperties {
     private final String credentials;
     private final String searchBase;
     private final String scope;
-    private final String schemaChecking;
+    private final Boolean schemaChecking;
     private final String type;
     private final String retry;
     private final String interval;
 
     private final Integer currentServerId;
-    public ReplicationProperties(Iterable<OpenLdapNode> providers, String bindMethod, String binddn, String credentials, String searchBase, String scope, String schemaChecking, String type, String retry, String interval, Integer currentServerId) {
+    public ReplicationProperties(Iterable<OpenLdapNode> providers, String bindMethod, String binddn, String credentials, String searchBase, String scope, Boolean schemaChecking, String type, String retry, String interval, Integer currentServerId) {
         this.providers = providers;
         this.bindMethod = bindMethod;
         this.binddn = binddn;
@@ -59,7 +59,7 @@ public class ReplicationProperties {
         return scope;
     }
 
-    public String getSchemaChecking() {
+    public Boolean getSchemaChecking() {
         return schemaChecking;
     }
 

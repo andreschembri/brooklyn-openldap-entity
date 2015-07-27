@@ -3,6 +3,7 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.catalog.Catalog;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
+import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.ConfigurableEntityFactory;
@@ -20,10 +21,9 @@ import com.google.common.reflect.TypeToken;
 
 import java.util.Map;
 
-@Catalog(name="Controlled Dynamic OpenLDAP Cluster", description="A cluster of OpenLDAP servers, which can be dynamically resized")
+@Catalog(name = "Controlled Dynamic OpenLDAP Cluster", description = "A cluster of OpenLDAP servers, which can be dynamically resized")
 @ImplementedBy(ControlledDynamicOpenLdapClusterImpl.class)
-public interface ControlledDynamicOpenLdapCluster extends  DynamicCluster{
-
+public interface ControlledDynamicOpenLdapCluster extends DynamicCluster {
 
 
     @SetFromFlag("initialSize")
@@ -35,7 +35,8 @@ public interface ControlledDynamicOpenLdapCluster extends  DynamicCluster{
 
     @SuppressWarnings("serial")
     AttributeSensor<Map<Entity, String>> OPENLDAP_CLUSTER_NODES = Sensors.newSensor(
-            new TypeToken<Map<Entity, String>>() {},
+            new TypeToken<Map<Entity, String>>() {
+            },
             "openldap.cluster.nodes", "Names of all active OpenLdap nodes in the cluster <Entity,OpenLdap Name>");
 
     public static AttributeSensor<DynamicCluster> CLUSTER = new BasicAttributeSensor<DynamicCluster>(
@@ -45,12 +46,21 @@ public interface ControlledDynamicOpenLdapCluster extends  DynamicCluster{
 
     public static final AttributeSensor<Lifecycle> SERVICE_STATE_ACTUAL = Attributes.SERVICE_STATE_ACTUAL;
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @SetFromFlag("clusterSpec")
     public static BasicAttributeSensorAndConfigKey<EntitySpec<? extends DynamicCluster>> CLUSTER_SPEC = new BasicAttributeSensorAndConfigKey(
             EntitySpec.class, "controlleddynamiccluster.clusterSpec", "Spec for creating the cluster");
 
-
+    ConfigKey<String> BINDMETHOD = ConfigKeys.newConfigKey(String.class, "openldap.replication.bindmethod");
+    ConfigKey<String> BINDDN = ConfigKeys.newConfigKey(String.class, "openldap.replication.binddn");
+    ConfigKey<String> CREDENTIALS = ConfigKeys.newConfigKey(String.class, "openldap.replication.credentials");
+    ConfigKey<String> SEARCHBASE = ConfigKeys.newConfigKey(String.class, "openldap.replication.searchbase");
+    ConfigKey<String> SCOPE = ConfigKeys.newConfigKey(String.class, "openldap.replication.scope");
+    ConfigKey<Boolean> SCHEMACHECKING = ConfigKeys.newConfigKey(Boolean.class, "openldap.replication.schemachecking");
+    ConfigKey<String> TYPE = ConfigKeys.newConfigKey(String.class, "openldap.replication.type");
+    ConfigKey<String> RETRYSTRING = ConfigKeys.newConfigKey(String.class, "openldap.replication.retry");
+    ConfigKey<String> INTERVALSTRING = ConfigKeys.newConfigKey(String.class, "openldap.replication.interval");
+    ConfigKey<Integer> TIMEOUT = ConfigKeys.newConfigKey(Integer.class, "openldap.replication.timeout");
 
     AttributeSensor<Boolean> IS_CLUSTER_INIT = Sensors.newBooleanSensor("openLdap.cluster.isClusterInit", "Flag to determine if the cluster was already initialized");
 
