@@ -28,16 +28,8 @@ public interface OpenLdapNode extends SoftwareProcess, Entity, EntityLocal {
     @SetFromFlag
     public static final PortAttributeSensorAndConfigKey OPENLDAP_PORT = new PortAttributeSensorAndConfigKey("openldap.port", "OpenLDAP port", PortRanges.fromString("389"));
 
-    public  String getHost();
-
-    public int getPort();
-
     @SetFromFlag
     public static final BasicAttributeSensorAndConfigKey<Boolean> OLDMIRRORMODE = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class, "openldap.replication.olcmirrormode.enabled");
-    @SetFromFlag
-    public static final BasicAttributeSensorAndConfigKey<Boolean> OLCOVERLAYCONFIG = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class, "openldap.replication.olcoverlayconfig.enabled");
-    @SetFromFlag
-    public static final BasicAttributeSensorAndConfigKey<Boolean> OLCSYNCPROVCONFIG = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class , "openldap.replication.olcsyncprovconfig.enabled");
 
     BasicAttributeSensorAndConfigKey<Integer> OLCSERVERID = new BasicAttributeSensorAndConfigKey<Integer>(Integer.class , "openldap.olcserverid");
 
@@ -45,19 +37,14 @@ public interface OpenLdapNode extends SoftwareProcess, Entity, EntityLocal {
     BasicAttributeSensorAndConfigKey<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class,
             "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member");
 
-
     @Effector
     boolean loadLdifFromFile(String filePath);
 
     @Effector
     boolean ldapModifyFromString(String ldif);
 
-
     @Effector
     public Boolean commitCluster(@EffectorParam(name = "replicationProperties")ReplicationProperties replicationProperties);
-
-//    public Integer getOlcServerId();
-//    public void setOlcServerId(Integer olcServerId);
 
 
     }

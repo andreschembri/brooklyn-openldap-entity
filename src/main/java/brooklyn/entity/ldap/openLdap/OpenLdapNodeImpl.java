@@ -16,14 +16,13 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     }
 
     private String getAddress(){
-        return "ldap://" + this.getHost() + ":" + this.getPort();
+        return "ldap://" + this.getAttribute(Attributes.HOSTNAME) + ":" + this.getAttribute(OPENLDAP_PORT);
     }
 
     @Override
     protected void connectSensors() {
         super.connectSensors();
         connectServiceUpIsRunning();
-        String checkStatusCommand = getDriver().getStatusCmd();
         setAttribute(ADDRESS, getAddress());
     }
 
@@ -43,16 +42,6 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
        super.disconnectSensors();
         disconnectServiceUpIsRunning();
 
-    }
-
-    @Override
-    public String getHost(){
-        return this.getAttribute(Attributes.HOSTNAME);
-    }
-
-    @Override
-    public int getPort() {
-        return this.getAttribute(OPENLDAP_PORT);
     }
 
     private void addMasterProviders(ReplicationProperties replicationProperties) {
@@ -78,27 +67,30 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
 
     @Override
     public Boolean commitCluster(ReplicationProperties replicationProperties) {
-        //FIXME : Ideally this should replicate CONFIG by default, need to default it to something and make it configurable
         addMasterProviders(replicationProperties);
         this.setAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER, true);
+        //Fixme: this should return true/false depending on the result code
         return true;
     }
 
     @Override
     public boolean loadLdifFromFile(String filePath) {
         getDriver().ExecuteLdifFromFile("ldapmodify -Y EXTERNAL -H ldapi:/// -f", filePath);
+        //Fixme: this should return true/false depending on the result code
         return true;
     }
 
     @Override
     public boolean ldapModifyFromString(String ldif) {
         getDriver().ExecuteLDIF("ldapmodify -Y EXTERNAL -H ldapi:///", ldif);
+        //Fixme: this should return true/false depending on the result code
         return true;
     }
 
 
     private boolean ldapAddFromString(String ldif) {
         getDriver().ExecuteLDIF("ldapadd -Y EXTERNAL -H ldapi:///", ldif);
+        //Fixme: this should return true/false depending on the result code
         return true;
     }
 }
