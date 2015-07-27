@@ -51,15 +51,15 @@ public interface ControlledDynamicOpenLdapCluster extends DynamicCluster {
     public static BasicAttributeSensorAndConfigKey<EntitySpec<? extends DynamicCluster>> CLUSTER_SPEC = new BasicAttributeSensorAndConfigKey(
             EntitySpec.class, "controlleddynamiccluster.clusterSpec", "Spec for creating the cluster");
 
-    ConfigKey<String> BINDMETHOD = ConfigKeys.newConfigKey(String.class, "openldap.replication.bindmethod");
-    ConfigKey<String> BINDDN = ConfigKeys.newConfigKey(String.class, "openldap.replication.binddn");
-    ConfigKey<String> CREDENTIALS = ConfigKeys.newConfigKey(String.class, "openldap.replication.credentials");
-    ConfigKey<String> SEARCHBASE = ConfigKeys.newConfigKey(String.class, "openldap.replication.searchbase");
-    ConfigKey<String> SCOPE = ConfigKeys.newConfigKey(String.class, "openldap.replication.scope");
-    ConfigKey<Boolean> SCHEMACHECKING = ConfigKeys.newConfigKey(Boolean.class, "openldap.replication.schemachecking");
-    ConfigKey<String> TYPE = ConfigKeys.newConfigKey(String.class, "openldap.replication.type");
-    ConfigKey<String> RETRYSTRING = ConfigKeys.newConfigKey(String.class, "openldap.replication.retry");
-    ConfigKey<String> INTERVALSTRING = ConfigKeys.newConfigKey(String.class, "openldap.replication.interval");
+    ConfigKey<String> BINDMETHOD = ConfigKeys.newConfigKey(String.class, "openldap.replication.bindmethod", "", "simple");
+    ConfigKey<String> BINDDN = ConfigKeys.newConfigKey(String.class, "openldap.replication.binddn", "", "cn=admin,cn=config");
+    ConfigKey<String> CREDENTIALS = ConfigKeys.newConfigKey(String.class, "openldap.replication.credentials", "", "password");
+    ConfigKey<String> SEARCHBASE = ConfigKeys.newConfigKey(String.class, "openldap.replication.searchbase", "", "cn=config");
+    ConfigKey<String> SCOPE = ConfigKeys.newConfigKey(String.class, "openldap.replication.scope", "", "sub");
+    ConfigKey<Boolean> SCHEMACHECKING = ConfigKeys.newConfigKey(Boolean.class, "openldap.replication.schemachecking", "", true);
+    ConfigKey<String> TYPE = ConfigKeys.newConfigKey(String.class, "openldap.replication.type", "", "refreshAndPersist");
+    ConfigKey<String> RETRYSTRING = ConfigKeys.newConfigKey(String.class, "openldap.replication.retry", "", "5 5 300 5");
+    ConfigKey<String> INTERVALSTRING = ConfigKeys.newConfigKey(String.class, "openldap.replication.interval", "", "00:00:05:00");
     ConfigKey<Integer> TIMEOUT = ConfigKeys.newConfigKey(Integer.class, "openldap.replication.timeout");
 
     AttributeSensor<Boolean> IS_CLUSTER_INIT = Sensors.newBooleanSensor("openLdap.cluster.isClusterInit", "Flag to determine if the cluster was already initialized");
