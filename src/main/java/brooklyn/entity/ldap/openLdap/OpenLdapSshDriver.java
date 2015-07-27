@@ -12,9 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.*;
 
 import static brooklyn.util.ssh.BashCommands.installPackage;
@@ -30,7 +28,6 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     @Override
     public boolean isRunning() {
-
         ScriptHelper checkRunningScript = newScript(CHECK_RUNNING)
                 .body.append(sudo(getStatusCmd()));
         int returnScriptValue = checkRunningScript.execute();
