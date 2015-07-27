@@ -1,10 +1,8 @@
 package brooklyn.entity.ldap.openLdap;
 
-import brooklyn.config.ConfigKey;
 import brooklyn.enricher.Enrichers;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.Attributes;
-import brooklyn.entity.basic.EntityPredicates;
 import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.basic.ServiceStateLogic;
 import brooklyn.entity.group.AbstractMembershipTrackingPolicy;
@@ -13,7 +11,6 @@ import brooklyn.entity.ldap.openLdap.model.ReplicationProperties;
 import brooklyn.location.Location;
 import brooklyn.policy.EnricherSpec;
 import brooklyn.policy.PolicySpec;
-import brooklyn.util.time.Time;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
