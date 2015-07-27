@@ -1,9 +1,10 @@
 package brooklyn.entity.ldap.openLdap;
 
 
-import java.util.Map;
+import brooklyn.entity.ldap.openLdap.model.ReplicationProperties;
 
-public class LdifHelper {
+
+public class ConfigurationGenerator {
 
 public static String generateAddSyncProvToModuleList(){
     return "dn: cn=module,cn=config\n" +
@@ -50,11 +51,11 @@ public static String generateAddSyncProvToModuleList(){
         ldif.append("dn: olcDatabase={0}config,cn=config\n" +
                 "changetype: modify\n" +
                 "add: olcSyncRepl\n");
-        Map<String, Integer> urlsAndIds = replicationProperties.getProviders();
-        for (Map.Entry<String, Integer> urlAndId : urlsAndIds.entrySet()) {
+        Iterable<OpenLdapNode> providers = replicationProperties.getProviders();
+        for (OpenLdapNode provider : providers) {
             //TODO: add timeout property
             ldif.append(String.format("olcSyncRepl: rid=%d provider=%s binddn=\"%s\" bindmethod=%s credentials=%s searchbase=\"%s\" type=%s retry=\"%s\" %n",
-                    urlAndId.getValue(), urlAndId.getKey(), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
+                    provider.getAttribute(provider.OLCSERVERID), provider.getAttribute(provider.ADDRESS), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
                     replicationProperties.getCredentials(), replicationProperties.getSearchBase(), replicationProperties.getType(), replicationProperties.getRetry()));
         }
         ldif.append("-\n" +
