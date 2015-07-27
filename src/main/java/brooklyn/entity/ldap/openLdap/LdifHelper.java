@@ -5,7 +5,13 @@ import java.util.Map;
 
 public class LdifHelper {
 
-
+public static String generateAddSyncProvToModuleList(){
+    return "dn: cn=module,cn=config\n" +
+            "objectClass: olcModuleList\n" +
+            "cn: module\n" +
+            "olcModulePath: /usr/lib64/openldap\n" +
+            "olcModuleLoad: syncprov.la";
+}
 
     public static String generateLoadSyncProv() {
         return "dn: cn=module{0},cn=config\n" +
@@ -22,37 +28,16 @@ public class LdifHelper {
     }
 
     public static String generateSlappasswd(String password) {
-        return "slappaswd -p" + password;
+        return "slappasswd -s" + password;
     }
 
     public static String generateSetPassword(String slappaswdGenertedString) {
-        return "dn: cn=config\n" +
-                "changeType: modify\n" +
-                " \n" +
-                "dn: olcDatabase={0}config,cn=config\n" +
+        return  "dn: olcDatabase={0}config,cn=config\n" +
                 "add: olcRootPW\n" +
                 "olcRootPW: " + slappaswdGenertedString;
     }
 
-    public static String generateOlcRootDN() {
-        return "dn: olcDatabase={0}config,cn=config\n" +
-                "add: olcRootDN\n" +
-                "olcRootDN: cn=admin,cn=config";
-    }
-
-    public static String generateAddConfigurationReplication(Map<String, Integer> urlsAndIds) {
-        //TODO: change this map to pojo
-        StringBuilder ldif = new StringBuilder();
-        ldif.append("dn: cn=config\n" +
-                "changetype: modify\n" +
-                "replace: olcServerID\n");
-        for (Map.Entry<String, Integer> urlAndId : urlsAndIds.entrySet()) {
-            ldif.append(String.format("olcServerID: %d %s %n", urlAndId.getValue(), urlAndId.getKey()));
-        }
-        return ldif.toString();
-    }
-
-    public static String generateAddSyncProv() {
+    public static String generateAddSyncProvider() {
         return "dn: olcOverlay=syncprov,olcDatabase={0}config,cn=config\n" +
                 "changetype: add\n" +
                 "objectClass: olcOverlayConfig\n" +
@@ -60,7 +45,7 @@ public class LdifHelper {
                 "olcOverlay: syncprov";
     }
 
-    public static String generateAddSyncRepl(ReplicationProperties replicationProperties) {
+    public static String generateModifySyncReplication(ReplicationProperties replicationProperties) {
         StringBuilder ldif = new StringBuilder();
         ldif.append("dn: olcDatabase={0}config,cn=config\n" +
                 "changetype: modify\n" +

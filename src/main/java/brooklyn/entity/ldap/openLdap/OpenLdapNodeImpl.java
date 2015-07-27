@@ -11,7 +11,11 @@ import java.util.Map;
 public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNode {
     public static final Logger log = LoggerFactory.getLogger(OpenLdapNodeImpl.class);
 
-
+@Override
+public void init(){
+   super.init();
+    setAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER, false);
+}
 
     @Override
     protected void connectSensors() {
@@ -49,24 +53,32 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     }
 
     private void addMasterProviders(ReplicationProperties replicationProperties) {
+        if (getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)){
+            ldapModifyFromString(LdifHelper.generateModifySyncReplication(replicationProperties));
+        }
+
+        else if(!getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)){
+        this.ldapAddFromString(LdifHelper.generateAddSyncProvToModuleList());
         ldapModifyFromString(LdifHelper.generateLoadSyncProv());
         ldapModifyFromString(LdifHelper.generateSetOlcServerId(this.getOlcServerId()));
         ldapModifyFromString(LdifHelper.generateSetPassword(this.generateSlappassword(replicationProperties.getCredentials())));
-        ldapModifyFromString(LdifHelper.generateAddSyncProv());
-        ldapModifyFromString(LdifHelper.generateAddSyncRepl(replicationProperties));
+        ldapModifyFromString(LdifHelper.generateAddSyncProvider());
+        ldapModifyFromString(LdifHelper.generateModifySyncReplication(replicationProperties));
+        }
     }
 
     private String generateSlappassword(String password){
-       return this.getDriver().ExecuteCommand(LdifHelper.generateSlappasswd(password));
+       String slappasswd = this.getDriver().ExecuteCommand(LdifHelper.generateSlappasswd(password));
+        log.error("SLAPPASSWD ::: " + slappasswd);
+        return slappasswd;
     }
 
     @Override
     public Boolean commitCluster(Map<String, Integer> currentNodes) {
-        log.info("Committing node with host: " + this.getHost());
-        Map<String, Integer> applicableNodes = new HashMap<String, Integer>();
         //FIXME : Ideally this should replicate CONFIG by default, need to default it to something and make it configurable
-        ReplicationProperties replicationProperties = new ReplicationProperties(applicableNodes,"simple", "cn=Manager,dc=server,dc=world", "password", "dc=server,dc=world", "sub", "on", "refreshAndPersist", "30 5 300 3", "00:00:05:00",  this.getOlcServerId());
+        ReplicationProperties replicationProperties = new ReplicationProperties(currentNodes,"simple", "cn=admin,cn=config", "password", "cn=config", "sub", "on", "refreshAndPersist", "5 5 300 5", "00:00:05:00",  this.getOlcServerId());
         addMasterProviders(replicationProperties);
+        this.setAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER, true);
         return true;
     }
 

@@ -44,7 +44,7 @@ public interface OpenLdapNode extends SoftwareProcess, Entity {
     public static final BasicAttributeSensorAndConfigKey<Boolean> OLCSYNCPROVCONFIG = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class , "openldap.replication.olcsyncprovconfig.enabled");
 
 
-    AttributeSensor<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = Sensors.newBooleanSensor(
+    BasicAttributeSensorAndConfigKey<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class,
             "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member");
 
     MethodEffector<Boolean> COMMIT_OPENLDAP_CLUSTER = new MethodEffector<Boolean>(OpenLdapNode.class, "commitCluster");

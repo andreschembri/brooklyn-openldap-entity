@@ -30,34 +30,31 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
 
     @Override
     public void init() {
-        log.error("OPENLDAP init");
         super.init();
         setAttribute(IS_CLUSTER_INIT, false);
     }
 
     @Override
     public void start(Collection<? extends Location> locations) {
-        log.error("OPENLDAP start");
+        log.trace("OPENLDAP start");
         super.start(locations);
         connectSensors();
-        log.error("OPENLDAP start ::Checking if location is empty");
+        log.trace("OPENLDAP start ::Checking if location is empty");
         Time.sleep(6000);
         if (locations.isEmpty()) locations = getLocations();
-        log.error("These locations are present " + locations.toArray().toString());
 //        Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
 //                Predicates.instanceOf(OpenLdapNode.class),
 //                EntityPredicates.attributeEqualTo(OpenLdapNode.OPENLDAP_NODE_HAS_JOINED_CLUSTER, true),
 //                EntityPredicates.attributeEqualTo(OpenLdapNode.SERVICE_UP, true)));
         Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
                 Predicates.instanceOf(OpenLdapNode.class)));
-                log.error("Checking if anyNode is present");
+                log.trace("Checking if anyNode is present");
         if (anyNode.isPresent()) {
             log.info("Planning and Committing cluster changes on node: {}, cluster: {}", anyNode.get().getId(), getId());
            //Fixme: fix this name
             Map<String,Integer> arrayListTest = getProviderUrlAndIdFromMembers();
 
-            //TODO: Move logic for OLCServerId Here
-            Entities.invokeEffector(this, anyNode.get(), OpenLdapNode.COMMIT_OPENLDAP_CLUSTER, ImmutableMap.of("currentNodes", arrayListTest)).blockUntilEnded();
+
 
             setAttribute(IS_CLUSTER_INIT, true);
         } else {
@@ -91,9 +88,9 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
 
     @Override
     public void onServerPoolMemberChanged(Entity entity) {
-        log.error("SERVER CHANGED current entity is " + entity.getLocations().iterator().next());
-        log.error("Current Members are :: ");
+        log.debug("Server changed ... " + entity.getLocations().iterator().next());
 
+    if (entity instanceof OpenLdapNode){
         OpenLdapNode openLdapNode = (OpenLdapNode) entity;
 
 
@@ -104,48 +101,39 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
         Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
         for(OpenLdapNode target: targets){
             target.commitCluster(currentMembers);
-        }
+        }}
     }
 
     public static class MemberTrackingPolicy extends AbstractMembershipTrackingPolicy {
+
         @Override
-        protected void onEntityEvent(EventType type, Entity entity) {
-            ((ControlledDynamicOpenLdapCluster) super.entity).onServerPoolMemberChanged(entity);
+        protected  void onEntityAdded(Entity member){
+            if(super.entity instanceof  ControlledDynamicOpenLdapCluster){
+                ((ControlledDynamicOpenLdapCluster) super.entity).onServerPoolMemberChanged(member);
+            }
         }
     }
 
     private void setOlcServerIdIfNull(OpenLdapNode openLdapNode){
         if(openLdapNode.getOlcServerId() == null){
             openLdapNode.setOlcServerId(serverId.incrementAndGet());
-            log.error("Setting olcServerId to : " + serverId);
+            log.debug("Setting olcServerId to : " + serverId);
         }
     }
 
 
     private Map<String, Integer> getProviderUrlAndIdFromMembers() {
-        log.error("OPENLDAP get provider from url members");
+        log.debug("OPENLDAP get provider from url members");
         Map<String, Integer> providers = new HashMap<String, Integer>();
         Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
         for (OpenLdapNode node : targets) {
             String providerURL = "ldap://" + node.getHost() + ":" + node.getPort();
             setOlcServerIdIfNull(node);
             Integer id = node.getOlcServerId();
-            log.error("Node placed in map has the values of " + providerURL + " " + id);
+            log.debug("Node placed in map has the values of " + providerURL + " " + id);
             providers.put(providerURL, id);
         }
         return providers;
-    }
-
-    private boolean isNodeAlreadyAdded(OpenLdapNode nodeToBeChecked) {
-        //TODO change method name and check if the node is already started as well
-
-        for (Entity curMember : this.getMembers()) {
-            if (curMember instanceof OpenLdapNode) {
-                //If location is already there NodeWillBeMarked as already existing.
-                if (((OpenLdapNode) curMember).getHost() == nodeToBeChecked.getHost()) return true;
-            }
-        }
-        return false;
     }
 
 
