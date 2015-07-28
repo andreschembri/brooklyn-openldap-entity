@@ -48,7 +48,6 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         if (getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)){
             ldapModifyFromString(ConfigurationGenerator.generateModifySyncReplication(replicationProperties));
         }
-
         else if(!getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)) {
             ldapAddFromString(ConfigurationGenerator.generateAddSyncProvToModuleList());
             ldapModifyFromString(ConfigurationGenerator.generateLoadSyncProv());
@@ -74,23 +73,20 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     }
 
     @Override
-    public boolean loadLdifFromFile(String filePath) {
-        getDriver().ExecuteLdifFromFile("ldapmodify -Y EXTERNAL -H ldapi:/// -f", filePath);
+    public void loadLdifFromFile(String filePath) {
+        getDriver().ExecuteLdifFromFile(getDriver().LDAP_ADD_COMMAND_FROM_FILE, filePath);
         //Fixme: this should return true/false depending on the result code
-        return true;
     }
 
     @Override
-    public boolean ldapModifyFromString(String ldif) {
-        getDriver().ExecuteLDIF("ldapmodify -Y EXTERNAL -H ldapi:///", ldif);
+    public void ldapModifyFromString(String ldif) {
+        getDriver().ExecuteLDIF(getDriver().LDAP_MODIFY_COMMAND, ldif);
         //Fixme: this should return true/false depending on the result code
-        return true;
     }
 
 
-    private boolean ldapAddFromString(String ldif) {
-        getDriver().ExecuteLDIF("ldapadd -Y EXTERNAL -H ldapi:///", ldif);
+    private void ldapAddFromString(String ldif) {
+        getDriver().ExecuteLDIF(getDriver().LDAP_ADD_COMMAND, ldif);
         //Fixme: this should return true/false depending on the result code
-        return true;
     }
 }

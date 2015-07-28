@@ -37,10 +37,10 @@ public interface OpenLdapNode extends SoftwareProcess, Entity, EntityLocal {
             "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member");
 
     @Effector
-    boolean loadLdifFromFile(String filePath);
+    void loadLdifFromFile(String filePath);
 
     @Effector
-    boolean ldapModifyFromString(String ldif);
+    void ldapModifyFromString(String ldif);
 
     @Effector
     public Boolean commitCluster(@EffectorParam(name = "replicationProperties")ReplicationProperties replicationProperties);

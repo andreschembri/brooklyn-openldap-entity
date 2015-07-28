@@ -73,7 +73,7 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     @Override
     public void ExecuteLDIF(String command, String ldif) {
-        //todo: change the command to an enum (ldapadd, ldapmodify etc) or an if statement
+        //TODO must be changed to return true/false or exception when non-zero is returned
 
         //Create LDIF file to be executed
         Random rand = new Random();
@@ -96,7 +96,7 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     @Override
     public void ExecuteLdifFromFile(String command, String filePath) {
-        //todo: change the command to an enum (ldapadd, ldapmodify etc) or an if statement
+        //TODO must be changed to return true/false or exception when non-zero is returned
         //todo: use the -f flag.
         ByteArrayOutputStream sshOutputStream = new ByteArrayOutputStream();
         HashMap<String, Object> streams = new HashMap<String,Object>();
