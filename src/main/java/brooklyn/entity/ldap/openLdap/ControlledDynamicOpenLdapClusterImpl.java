@@ -3,17 +3,16 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.enricher.Enrichers;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.Attributes;
-import brooklyn.entity.basic.Lifecycle;
-import brooklyn.entity.basic.ServiceStateLogic;
+import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.group.AbstractMembershipTrackingPolicy;
 import brooklyn.entity.group.DynamicClusterImpl;
 import brooklyn.entity.ldap.openLdap.model.ReplicationProperties;
+import brooklyn.event.AttributeSensor;
+import brooklyn.event.basic.Sensors;
 import brooklyn.location.Location;
 import brooklyn.policy.EnricherSpec;
 import brooklyn.policy.PolicySpec;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
@@ -24,33 +23,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl implements ControlledDynamicOpenLdapCluster {
     public static final Logger log = LoggerFactory.getLogger(ControlledDynamicOpenLdapClusterImpl.class);
-    private AtomicInteger serverId = new AtomicInteger(0);
+
+    private static AttributeSensor<AtomicInteger> SERVER_ID = Sensors.newSensor(AtomicInteger.class, "SERVER_ID");
+
 
     @Override
     public void init() {
         super.init();
+        setAttribute(SERVER_ID , new AtomicInteger(0));
         setAttribute(IS_CLUSTER_INIT, false);
+        subscribeMembers();
     }
 
-    @Override
-    public void start(Collection<? extends Location> locations) {
-        log.trace("OPENLDAP start");
-        super.start(locations);
-        connectSensors();
-        log.trace("OPENLDAP start ::Checking if location is empty");
-        Optional<Entity> anyNode = Iterables.tryFind(getMembers(), Predicates.and(
-                Predicates.instanceOf(OpenLdapNode.class)));
-                log.trace("Checking if anyNode is present");
-        if (anyNode.isPresent()) {
-            clusterizeEntities();
-            setAttribute(IS_CLUSTER_INIT, true);
-        } else {
-            log.warn("No OpenLdap Nodes are found on the cluster: {}. Initialization Failed", getId());
-            ServiceStateLogic.setExpectedState(this, Lifecycle.ON_FIRE);
-        }
-    }
-
-    protected void connectSensors() {
+    protected void subscribeMembers() {
         addPolicy(PolicySpec.create(MemberTrackingPolicy.class)
                 .displayName("Controller targets tracker")
                 .configure("sensorsToTrack", ImmutableSet.of(OpenLdapNode.SERVICE_UP))
@@ -68,44 +53,49 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
                 .fromMembers()
                 .build();
         addEnricher(first);
+
+
     }
 
     @Override
-    public void onServerPoolMemberChanged(Entity entity) {
-        log.debug("Server changed ... " + entity.getLocations().iterator().next());
-        clusterizeEntities();
+    public Entity createNode(Location loc, Map<?,?> spec){
+        Entity entity =   super.createNode(loc, spec);
+        if(entity.getAttribute(OpenLdapNode.OLCSERVERID) == null) {
+            ((EntityLocal) entity).setAttribute(OpenLdapNode.OLCSERVERID, getAttribute(SERVER_ID).incrementAndGet());
+        }
+        return entity;
     }
 
     private void clusterizeEntities(){
         Iterable<OpenLdapNode> targets = Iterables.filter(getChildren(), OpenLdapNode.class);
-        setOlcServerIdIfNull(targets);
         for(OpenLdapNode target: targets) {
             ReplicationProperties replicationProperties = new ReplicationProperties(targets ,getConfig(BINDMETHOD), getConfig(BINDDN), getConfig(CREDENTIALS), getConfig(SEARCHBASE), getConfig(SCOPE), getConfig(SCHEMACHECKING), getConfig(TYPE), getConfig(RETRYSTRING), getConfig(INTERVALSTRING),  target.getAttribute(target.OLCSERVERID));
-            target.commitCluster(replicationProperties);
+            clusterNode(replicationProperties, target);
         }
     }
 
     public static class MemberTrackingPolicy extends AbstractMembershipTrackingPolicy {
         @Override
         protected  void onEntityAdded(Entity member){
-            if(super.entity instanceof  ControlledDynamicOpenLdapCluster){
-                ((ControlledDynamicOpenLdapCluster) super.entity).onServerPoolMemberChanged(member);
-            }
+                ((ControlledDynamicOpenLdapClusterImpl) entity).clusterizeEntities();
+        }
+        @Override
+        protected void onEntityRemoved(Entity member){
+                ((ControlledDynamicOpenLdapClusterImpl) entity).clusterizeEntities();
         }
     }
 
-    private void setOlcServerIdIfNull(Iterable<OpenLdapNode> openLdapNodes){
-        for (OpenLdapNode openLdapNode : openLdapNodes){
-            setOlcServerIdIfNull(openLdapNode);
+    private void clusterNode(ReplicationProperties replicationProperties, OpenLdapNode targetNode) {
+        if (getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)){
+            targetNode.ldapModifyFromString(ConfigurationGenerator.generateModifySyncReplication(replicationProperties));
         }
-    }
-
-    private void setOlcServerIdIfNull(OpenLdapNode openLdapNode){
-        log.error("Checking if OLCServerId is null");
-        if(openLdapNode.getAttribute(openLdapNode.OLCSERVERID) == null){
-            log.error("OlcServerID was null being set");
-            openLdapNode.setAttribute(openLdapNode.OLCSERVERID, serverId.incrementAndGet());
-            log.debug("Setting olcServerId to : " + serverId);
+        else if(!getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)) {
+            targetNode.ldapAddFromString(ConfigurationGenerator.generateAddSyncProvToModuleList());
+            targetNode.ldapModifyFromString(ConfigurationGenerator.generateLoadSyncProv());
+            targetNode.ldapModifyFromString(ConfigurationGenerator.generateSetOlcServerId(this.getAttribute(targetNode.OLCSERVERID)));
+            targetNode.ldapModifyFromString(ConfigurationGenerator.generateSetPassword(targetNode.generateSlappassword(replicationProperties.getCredentials())));
+            targetNode.ldapModifyFromString(ConfigurationGenerator.generateAddSyncProvider());
+            targetNode.ldapModifyFromString(ConfigurationGenerator.generateAddSyncReplication(replicationProperties));
         }
     }
 

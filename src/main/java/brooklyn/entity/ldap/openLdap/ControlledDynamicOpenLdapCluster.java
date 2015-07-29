@@ -27,29 +27,10 @@ public interface ControlledDynamicOpenLdapCluster extends DynamicCluster {
 
 
     @SetFromFlag("initialSize")
-    public static ConfigKey<Integer> INITIAL_SIZE = ConfigKeys.newConfigKeyWithDefault(Cluster.INITIAL_SIZE, 1);
+    ConfigKey<Integer> INITIAL_SIZE = ConfigKeys.newConfigKeyWithDefault(Cluster.INITIAL_SIZE, 1);
 
-    @SetFromFlag("factory")
-    public static BasicAttributeSensorAndConfigKey<ConfigurableEntityFactory<? extends OpenLdapNode>> FACTORY = new BasicAttributeSensorAndConfigKey(
-            ConfigurableEntityFactory.class, DynamicCluster.FACTORY.getName(), "factory (or closure) to create the web server");
-
-    @SuppressWarnings("serial")
-    AttributeSensor<Map<Entity, String>> OPENLDAP_CLUSTER_NODES = Sensors.newSensor(
-            new TypeToken<Map<Entity, String>>() {
-            },
-            "openldap.cluster.nodes", "Names of all active OpenLdap nodes in the cluster <Entity,OpenLdap Name>");
-
-    public static AttributeSensor<DynamicCluster> CLUSTER = new BasicAttributeSensor<DynamicCluster>(
-            DynamicCluster.class, "controlleddynamiccluster.cluster", "Underlying web-app cluster");
-
-    public static final AttributeSensor<String> HOSTNAME = Attributes.HOSTNAME;
-
-    public static final AttributeSensor<Lifecycle> SERVICE_STATE_ACTUAL = Attributes.SERVICE_STATE_ACTUAL;
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @SetFromFlag("clusterSpec")
-    public static BasicAttributeSensorAndConfigKey<EntitySpec<? extends DynamicCluster>> CLUSTER_SPEC = new BasicAttributeSensorAndConfigKey(
-            EntitySpec.class, "controlleddynamiccluster.clusterSpec", "Spec for creating the cluster");
+    BasicAttributeSensorAndConfigKey<Boolean> OPENLDAP_NODE_HAS_JOINED_CLUSTER = new BasicAttributeSensorAndConfigKey<Boolean>(Boolean.class,
+            "openldap.node.openLdapNodeHasJoinedCluster", "Flag to indicate whether the OpenLDAP node has joined a cluster member", false);;
 
     ConfigKey<String> BINDMETHOD = ConfigKeys.newConfigKey(String.class, "openldap.replication.bindmethod", "", "simple");
     ConfigKey<String> BINDDN = ConfigKeys.newConfigKey(String.class, "openldap.replication.binddn", "", "cn=admin,cn=config");
@@ -63,8 +44,5 @@ public interface ControlledDynamicOpenLdapCluster extends DynamicCluster {
     ConfigKey<Integer> TIMEOUT = ConfigKeys.newConfigKey(Integer.class, "openldap.replication.timeout");
 
     AttributeSensor<Boolean> IS_CLUSTER_INIT = Sensors.newBooleanSensor("openLdap.cluster.isClusterInit", "Flag to determine if the cluster was already initialized");
-
-    void onServerPoolMemberChanged(Entity entity);
-
 
 }

@@ -6,7 +6,9 @@ import brooklyn.entity.software.SshEffectorTasks;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.collections.MutableMap;
 import brooklyn.util.task.DynamicTasks;
+import brooklyn.util.task.ssh.SshTasks;
 import brooklyn.util.task.system.ProcessTaskWrapper;
+import brooklyn.util.text.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -19,6 +21,8 @@ import static brooklyn.util.ssh.BashCommands.installPackage;
 import static brooklyn.util.ssh.BashCommands.sudo;
 
 public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implements OpenLdapDriver {
+    final String LDAP_ADD_COMMAND =  "ldapadd -Y EXTERNAL -H ldapi:///";
+    final String LDAP_MODIFY_COMMAND ="ldapmodify -Y EXTERNAL -H ldapi:///";
 
     public static final Logger log = LoggerFactory.getLogger(OpenLdapSshDriver.class);
 
@@ -36,6 +40,7 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     @Override
     public void stop() {
+        //FIXME: stop the node
         newScript(MutableMap.of(USE_PID_FILE, false), STOPPING).execute();
     }
 
@@ -43,7 +48,7 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
     public void install() {
         List<String> commands = new LinkedList<String>();
         commands.add(installPackage(ImmutableMap.of("yum", "openldap-servers openldap-clients openldap-clients nss-pam-ldapd"), null));
-        newScript(INSTALLING).body.append(commands).execute();
+        newScript(INSTALLING).body.append(commands).failOnNonZeroResultCode().execute();
         //TODO: put code here to possibly copy a database ?
         //TODO: add code for other package managers
     }
@@ -65,45 +70,36 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
     }
 
     @Override
-    public void ExecuteLDIF(String command, String ldif) {
+    public void ExecuteLdif(String command, String ldif) {
         //TODO must be changed to return true/false or exception when non-zero is returned
 
         //Create LDIF file to be executed
         Random rand = new Random();
-        String fileName = rand.nextInt(500) + ".ldif";
-        log.trace("Going to write file with filename " +fileName + "\n" );
+        String fileName = Strings.makeRandomId(5) + ".ldif";
+        log.trace("Going to write file with filename " + fileName + "\n");
+        this.copyResource(ldif, fileName);
 
-        this.getMachine().execCommands(null, ImmutableList.of("cat  > /tmp/ldap/"  + fileName + "<<EOF\n"
-                                                                                        + ldif + "\n" + "EOF"));
-        ByteArrayOutputStream sshOutputStream = new ByteArrayOutputStream();
-        HashMap<String, Object> streams = new HashMap<String,Object>();
-        streams.put(SshMachineLocation.STDOUT.getName(), sshOutputStream);
-        streams.put(SshMachineLocation.STDERR.getName(), sshOutputStream);
+
+        String executeLdifCommand = String.format("%s -f %s%s", command, this.getRunDir(), fileName);
+        DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), executeLdifCommand).requiringExitCodeZero()).asTask().getUnchecked();
         //execute ldap
-        this.getMachine().execCommands(streams,"ExecuteLDIF with command "+ command , ImmutableList.of(command + " -f" + "/tmp/ldap/" + fileName));
-        log.debug("Output After Executing LDIF FILE : " +fileName + "\n" + new String(sshOutputStream.toByteArray()));
+        this.getMachine().execCommands("ExecuteLDIF with command " + command, ImmutableList.of(command + " -f" + this.getRunDir() + fileName));
 
         //remove file
-        this.getMachine().execCommands(null, ImmutableList.of("rm -f /tmp/ldap/" + fileName ));
-    }
-
-    @Override
-    public void ExecuteLdifFromFile(String command, String filePath) {
-        //TODO must be changed to return true/false or exception when non-zero is returned
-        //todo: use the -f flag.
-        ByteArrayOutputStream sshOutputStream = new ByteArrayOutputStream();
-        HashMap<String, Object> streams = new HashMap<String,Object>();
-        streams.put(SshMachineLocation.STDOUT.getName(), sshOutputStream);
-        streams.put(SshMachineLocation.STDERR.getName(), sshOutputStream);
-        this.getMachine().execCommands(streams, "ExecuteLdifFromFile with command "+ command + " and filepath " + filePath, ImmutableList.of(command + " " + filePath));
-        log.debug("OUTPUT AFTER EXECUTING " + command + " and " + " filepath: " + filePath + "\n" + new String(sshOutputStream.toByteArray()) );
+        this.getMachine().execCommands("Removing file", ImmutableList.of("rm -f " + this.getRunDir() + fileName ));
     }
 
     public String ExecuteSlapPasswd(String command){
-        ByteArrayOutputStream sshOutputStream = new ByteArrayOutputStream();
-        this.getMachine().execCommands(ImmutableMap.<String, Object>of(SshMachineLocation.STDOUT.getName(), sshOutputStream), "Executing custom Command", ImmutableList.of(command));
-        String result = new String(sshOutputStream.toByteArray());
-        return result;
+      return  DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), command)
+                .requiringZeroAndReturningStdout()).asTask().getUnchecked();
+    }
+
+    public void ldifAddFromString(String ldif) {
+        ExecuteLdif(LDAP_ADD_COMMAND, ldif);
+    }
+
+    public void ldifModifyFromString(String ldif){
+        ExecuteLdif(LDAP_MODIFY_COMMAND, ldif);
     }
 
     @Override

@@ -12,10 +12,9 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     @Override
     public void init(){
         super.init();
-        setAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER, false);
     }
 
-    private String getAddress(){
+    private String generateOpenLdapAddress(){
         return "ldap://" + this.getAttribute(Attributes.HOSTNAME) + ":" + this.getAttribute(OPENLDAP_PORT);
     }
 
@@ -23,7 +22,7 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     protected void connectSensors() {
         super.connectSensors();
         connectServiceUpIsRunning();
-        setAttribute(ADDRESS, getAddress());
+        setAttribute(OPENLDAP_ADDRESS, generateOpenLdapAddress());
     }
 
     @Override
@@ -36,7 +35,6 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         return (OpenLdapDriver) super.getDriver();
     }
 
-
     @Override
     public void disconnectSensors(){
        super.disconnectSensors();
@@ -44,49 +42,22 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
 
     }
 
-    private void addMasterProviders(ReplicationProperties replicationProperties) {
-        if (getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)){
-            ldapModifyFromString(ConfigurationGenerator.generateModifySyncReplication(replicationProperties));
-        }
-        else if(!getAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER)) {
-            ldapAddFromString(ConfigurationGenerator.generateAddSyncProvToModuleList());
-            ldapModifyFromString(ConfigurationGenerator.generateLoadSyncProv());
-            ldapModifyFromString(ConfigurationGenerator.generateSetOlcServerId(this.getAttribute(OLCSERVERID)));
-            ldapModifyFromString(ConfigurationGenerator.generateSetPassword(this.generateSlappassword(replicationProperties.getCredentials())));
-            ldapModifyFromString(ConfigurationGenerator.generateAddSyncProvider());
-            ldapModifyFromString(ConfigurationGenerator.generateAddSyncReplication(replicationProperties));
-        }
-    }
-
-    private String generateSlappassword(String password){
+    //FIXME: Should go to cluster
+    public String generateSlappassword(String password){
        String slappasswd = this.getDriver().ExecuteSlapPasswd(ConfigurationGenerator.generateSlappasswd(password));
         log.error("SLAPPASSWD ::: " + slappasswd);
         return slappasswd;
     }
 
     @Override
-    public Boolean commitCluster(ReplicationProperties replicationProperties) {
-        addMasterProviders(replicationProperties);
-        this.setAttribute(OPENLDAP_NODE_HAS_JOINED_CLUSTER, true);
-        //Fixme: this should return true/false depending on the result code
-        return true;
-    }
-
-    @Override
-    public void loadLdifFromFile(String filePath) {
-        getDriver().ExecuteLdifFromFile(getDriver().LDAP_ADD_COMMAND_FROM_FILE, filePath);
-        //Fixme: this should return true/false depending on the result code
-    }
-
-    @Override
     public void ldapModifyFromString(String ldif) {
-        getDriver().ExecuteLDIF(getDriver().LDAP_MODIFY_COMMAND, ldif);
+        getDriver().ldifModifyFromString(ldif);
         //Fixme: this should return true/false depending on the result code
     }
 
-
-    private void ldapAddFromString(String ldif) {
-        getDriver().ExecuteLDIF(getDriver().LDAP_ADD_COMMAND, ldif);
+    @Override
+    public void ldapAddFromString(String ldif) {
+        getDriver().ldifAddFromString(ldif);
         //Fixme: this should return true/false depending on the result code
     }
 }

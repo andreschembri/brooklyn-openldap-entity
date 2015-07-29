@@ -55,7 +55,7 @@ public static String generateAddSyncProvToModuleList(){
         for (OpenLdapNode provider : providers) {
             //TODO: add timeout property
             ldif.append(String.format("olcSyncRepl: rid=%d provider=%s binddn=\"%s\" bindmethod=%s credentials=%s searchbase=\"%s\" type=%s retry=\"%s\" %n",
-                    provider.getAttribute(provider.OLCSERVERID), provider.getAttribute(provider.ADDRESS), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
+                    provider.getAttribute(provider.OLCSERVERID), provider.getAttribute(provider.OPENLDAP_ADDRESS), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
                     replicationProperties.getCredentials(), replicationProperties.getSearchBase(), replicationProperties.getType(), replicationProperties.getRetry()));
         }
         ldif.append("-\n" +
@@ -73,7 +73,7 @@ public static String generateAddSyncProvToModuleList(){
         for (OpenLdapNode provider : providers) {
             //TODO: add timeout property
             ldif.append(String.format("olcSyncRepl: rid=%d provider=%s binddn=\"%s\" bindmethod=%s credentials=%s searchbase=\"%s\" type=%s retry=\"%s\" %n",
-                    provider.getAttribute(provider.OLCSERVERID), provider.getAttribute(provider.ADDRESS), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
+                    provider.getAttribute(provider.OLCSERVERID), provider.getAttribute(provider.OPENLDAP_ADDRESS), replicationProperties.getBinddn(), replicationProperties.getBindMethod(),
                     replicationProperties.getCredentials(), replicationProperties.getSearchBase(), replicationProperties.getType(), replicationProperties.getRetry()));
         }
         ldif.append("-\n" +
