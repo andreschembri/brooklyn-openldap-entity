@@ -59,7 +59,7 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     }
 
     private String generateSlappassword(String password){
-       String slappasswd = this.getDriver().ExecuteCommand(ConfigurationGenerator.generateSlappasswd(password));
+       String slappasswd = this.getDriver().ExecuteSlapPasswd(ConfigurationGenerator.generateSlappasswd(password));
         log.error("SLAPPASSWD ::: " + slappasswd);
         return slappasswd;
     }

@@ -59,16 +59,9 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         //TODO put the command to start the service in different linux distributions
     }
 
-
     public String getStatusCmd() {
         //TODO: need to check for different OSs
         return "service slapd status";
-    }
-
-
-    @Override
-    public ProcessTaskWrapper<Integer> executeScriptAsync(String commands) {
-        return DynamicTasks.queue(SshEffectorTasks.ssh(commands));
     }
 
     @Override
@@ -106,14 +99,12 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
         log.debug("OUTPUT AFTER EXECUTING " + command + " and " + " filepath: " + filePath + "\n" + new String(sshOutputStream.toByteArray()) );
     }
 
-    public String ExecuteCommand(String command){
+    public String ExecuteSlapPasswd(String command){
         ByteArrayOutputStream sshOutputStream = new ByteArrayOutputStream();
-        this.getMachine().execCommands(ImmutableMap.<String, Object>of(SshMachineLocation.STDOUT.getName(), sshOutputStream), "Generating password with Slappasswd", ImmutableList.of(command));
+        this.getMachine().execCommands(ImmutableMap.<String, Object>of(SshMachineLocation.STDOUT.getName(), sshOutputStream), "Executing custom Command", ImmutableList.of(command));
         String result = new String(sshOutputStream.toByteArray());
         return result;
     }
-
-
 
     @Override
     public OpenLdapNodeImpl getEntity() {

@@ -12,5 +12,5 @@ public interface OpenLdapDriver extends SoftwareProcessDriver {
     public String getStatusCmd();
     public void ExecuteLDIF(String Command, String ldif);
     public void ExecuteLdifFromFile(String Command, String filePath);
-    public String ExecuteCommand(String command);
+    public String ExecuteSlapPasswd(String command);
 }
