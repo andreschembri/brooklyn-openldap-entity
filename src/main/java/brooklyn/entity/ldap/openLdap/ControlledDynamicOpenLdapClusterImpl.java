@@ -26,7 +26,6 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
 
     private static AttributeSensor<AtomicInteger> SERVER_ID = Sensors.newSensor(AtomicInteger.class, "SERVER_ID");
 
-
     @Override
     public void init() {
         super.init();
@@ -53,8 +52,6 @@ public class ControlledDynamicOpenLdapClusterImpl extends DynamicClusterImpl imp
                 .fromMembers()
                 .build();
         addEnricher(first);
-
-
     }
 
     @Override

@@ -14,15 +14,10 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
         super.init();
     }
 
-    private String generateOpenLdapAddress(){
-        return "ldap://" + this.getAttribute(Attributes.HOSTNAME) + ":" + this.getAttribute(OPENLDAP_PORT);
-    }
-
     @Override
     protected void connectSensors() {
         super.connectSensors();
         connectServiceUpIsRunning();
-        setAttribute(OPENLDAP_ADDRESS, generateOpenLdapAddress());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package brooklyn.entity.ldap.openLdap;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
+import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.lifecycle.ScriptHelper;
 import brooklyn.entity.software.SshEffectorTasks;
 import brooklyn.location.basic.SshMachineLocation;
@@ -28,6 +29,14 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     public OpenLdapSshDriver(OpenLdapNodeImpl entity, SshMachineLocation machine) {
         super(entity, machine);
+    }
+
+    private String generateOpenLdapAddress(){
+        return "ldap://" + entity.getAttribute(Attributes.HOSTNAME) + ":" + entity.getAttribute(OpenLdapNode.OPENLDAP_PORT);
+    }
+    @Override
+    public void postLaunch(){
+        entity.setAttribute(OpenLdapNode.OPENLDAP_ADDRESS, generateOpenLdapAddress());
     }
 
     @Override
