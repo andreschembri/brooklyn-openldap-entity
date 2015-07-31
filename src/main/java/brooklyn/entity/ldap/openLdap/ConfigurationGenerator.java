@@ -82,5 +82,9 @@ public static String generateAddSyncProvToModuleList(){
         return ldif.toString();
     }
 
+    public static String generateChangePortCommand(Integer port){
+        return String.format("sed -i 's/SLAPD_URLS=\".*\"/SLAPD_URLS=\"ldap:\\/\\/0.0.0.0:%s\"/ ldapi:///' /etc/sysconfig/slapd ", port);
+    }
+
 
 }

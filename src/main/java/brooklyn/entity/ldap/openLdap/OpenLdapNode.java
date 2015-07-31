@@ -15,7 +15,7 @@ public interface OpenLdapNode extends SoftwareProcess {
 
     //FIXME: configure it correctly in ssh driver
     @SetFromFlag
-    PortAttributeSensorAndConfigKey OPENLDAP_PORT = new PortAttributeSensorAndConfigKey("openldap.port", "OpenLDAP port", PortRanges.fromString("389+"));
+    PortAttributeSensorAndConfigKey OPENLDAP_PORT = new PortAttributeSensorAndConfigKey("openldap.port", "OpenLDAP port", PortRanges.fromString("389, 1000+"));
 
     BasicAttributeSensorAndConfigKey<Integer> OLCSERVERID = new BasicAttributeSensorAndConfigKey<Integer>(Integer.class , "openldap.olcserverid");
 

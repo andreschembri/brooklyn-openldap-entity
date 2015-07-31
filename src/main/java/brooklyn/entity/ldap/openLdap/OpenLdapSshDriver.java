@@ -65,7 +65,16 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
     @Override
     public void customize() {
         //TODO: Client must be able to provide own DBs to load in non-clustered/first node...
+
+        //change port configuration
+        DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), getChangePortCommand()).requiringExitCodeZero()).asTask().getUnchecked();
     }
+
+
+    private String getChangePortCommand(){
+        return ConfigurationGenerator.generateChangePortCommand(this.getEntity().getAttribute(OpenLdapNode.OPENLDAP_PORT));
+    }
+
 
     @Override
     public void launch() {
