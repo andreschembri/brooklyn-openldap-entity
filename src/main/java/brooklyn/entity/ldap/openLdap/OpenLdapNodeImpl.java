@@ -3,8 +3,14 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.entity.ldap.openLdap.model.ReplicationProperties;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
+import brooklyn.util.time.Duration;
+import com.google.common.base.Functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Callable;
 
 public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNode {
     public static final Logger log = LoggerFactory.getLogger(OpenLdapNodeImpl.class);
@@ -18,7 +24,23 @@ public class OpenLdapNodeImpl extends SoftwareProcessImpl implements OpenLdapNod
     protected void connectSensors() {
         super.connectSensors();
         connectServiceUpIsRunning();
+        connectCustomSensors();
     }
+
+    private void connectCustomSensors() {
+        FunctionFeed.builder().entity(this).period(Duration.FIVE_SECONDS).poll(((FunctionPollConfig) (new FunctionPollConfig(CONNECTION_COUNTER)).callable(new Callable() {
+            public Integer call() {
+                return Integer.valueOf(OpenLdapNodeImpl.this.getDriver().getCurrentNumberOfConnections());
+            }
+        }))).build();
+        FunctionFeed.builder().entity(this).period(Duration.FIVE_SECONDS).poll((FunctionPollConfig) (new FunctionPollConfig(READ_WAITERS_COUNTER)).callable(new Callable() {
+            @Override
+            public Integer call() throws Exception {
+                return Integer.valueOf(OpenLdapNodeImpl.this.getDriver().getCurrentNumberOfWaiters());
+            }
+        }));
+    }
+
 
     @Override
     public Class<?> getDriverInterface() {

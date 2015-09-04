@@ -4,8 +4,11 @@ import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.*;
 import brooklyn.entity.proxying.ImplementedBy;
+import brooklyn.event.AttributeSensor;
+import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
+import brooklyn.event.basic.Sensors;
 import brooklyn.location.basic.PortRanges;
 import brooklyn.util.flags.SetFromFlag;
 
@@ -31,6 +34,10 @@ public interface OpenLdapNode extends SoftwareProcess {
 
     @Effector
     String generateSlappassword(@EffectorParam(name= "password")String password);
+
+
+    AttributeSensor<Integer> CONNECTION_COUNTER = Sensors.newIntegerSensor("openldap.monitors.counter", "Number of monitors");
+    AttributeSensor<Integer> READ_WAITERS_COUNTER = Sensors.newIntegerSensor("openldap.monitors.readwaiters", "Number of read waiters");
 
 
     }

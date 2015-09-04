@@ -1,0 +1,19 @@
+name: My Web Cluster
+
+location:
+  byon:
+    user: root
+    privateKeyFile: ~/.ssh/id_rsa
+    hosts:
+    - 192.168.2.65
+    - 192.168.2.66
+
+services:
+
+- type: brooklyn.entity.ldap.openLdap.ControlledDynamicOpenLdapCluster
+  initialSize: 2
+  name: My Web
+  brooklyn.config:
+    dynamiccluster.memberspec:
+      $brooklyn:entitySpec:
+        type: brooklyn.entity.ldap.openLdap.OpenLdapNode

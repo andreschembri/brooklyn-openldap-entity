@@ -8,4 +8,6 @@ public interface OpenLdapDriver extends SoftwareProcessDriver {
     String ExecuteSlapPasswd(String command);
     void ldifAddFromString(String ldif);
     void ldifModifyFromString(String ldif);
+    Integer getCurrentNumberOfWaiters();
+    Integer getCurrentNumberOfConnections();
 }

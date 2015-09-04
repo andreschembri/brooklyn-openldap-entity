@@ -3,19 +3,16 @@ package brooklyn.entity.ldap.openLdap;
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.lifecycle.ScriptHelper;
-import brooklyn.entity.software.SshEffectorTasks;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.collections.MutableMap;
 import brooklyn.util.task.DynamicTasks;
 import brooklyn.util.task.ssh.SshTasks;
-import brooklyn.util.task.system.ProcessTaskWrapper;
 import brooklyn.util.text.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.util.*;
 
 import static brooklyn.util.ssh.BashCommands.installPackage;
@@ -72,15 +69,18 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     private void changePortIfNeeded(){
        if(getEntity().getAttribute(OpenLdapNode.OPENLDAP_PORT) == 389) {
-           if (getMachine().getOsDetails().getName().contains("CentOS") || getMachine().getOsDetails().getName().contains("Red Hat")) {
-               String semanageCommand = String.format("semanage port -a -t ldap_port_t -p tcp %s", getEntity().getAttribute(OpenLdapNode.OPENLDAP_PORT));
-               DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), semanageCommand).requiringExitCodeZero()).asTask().getUnchecked();
-           }
+           openPortIfNeeded();
            String changePortCommand = ConfigurationGenerator.generateChangePortCommand(this.getEntity().getAttribute(OpenLdapNode.OPENLDAP_PORT));
            DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), changePortCommand).requiringExitCodeZero()).asTask().getUnchecked();
        }
     }
 
+    private void openPortIfNeeded(){
+        if (getMachine().getOsDetails().getName().contains("CentOS") || getMachine().getOsDetails().getName().contains("Red Hat")) {
+            String semanageCommand = String.format("semanage port -a -t ldap_port_t -p tcp %s", getEntity().getAttribute(OpenLdapNode.OPENLDAP_PORT));
+            DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), semanageCommand).requiringExitCodeZero()).asTask().getUnchecked();
+        }
+    }
 
     @Override
     public void launch() {
@@ -124,6 +124,24 @@ public class OpenLdapSshDriver extends AbstractSoftwareProcessSshDriver implemen
 
     public void ldifModifyFromString(String ldif){
         ExecuteLdif(LDAP_MODIFY_COMMAND, ldif);
+    }
+
+    @Override
+    public Integer getCurrentNumberOfWaiters() {
+        //FIXME:: CHANGE to  cn/dc to configurable
+        String command = "ldapsearch -x -D cn=Manager,dc=server,dc=world -w password -b cn=Current,cn=Connections,cn=Monitor -s base '(objectClass=*)' '*' '+' |grep -oP '(?<=monitorCounter: )\\d'";
+        String ldapSearchResult=  DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), command)
+                .requiringZeroAndReturningStdout()).asTask().getUnchecked();
+        return Integer.parseInt(ldapSearchResult);
+    }
+
+    @Override
+    public Integer getCurrentNumberOfConnections() {
+        //fixme: Change to cn/dc to configurable
+        String command = " ldapsearch -x -D cn=Manager,dc=server,dc=world -w password -b cn=Read,cn=Waiters,cn=Monitor -s base '(objectClass=*)' '*' '+'|grep -oP '(?<=monitorCounter: )\\d''";
+        String ldapSearchResult=  DynamicTasks.queue(SshTasks.newSshExecTaskFactory(getMachine(), command)
+                .requiringZeroAndReturningStdout()).asTask().getUnchecked();
+        return null;
     }
 
     @Override
